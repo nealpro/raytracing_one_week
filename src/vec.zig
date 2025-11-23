@@ -69,6 +69,10 @@ pub const vec3 = struct {
         return self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2];
     }
 
+    pub fn normalize(self: *vec3) void {
+        self.scaleDown(self.length());
+    }
+
     fn add(u: vec3, v: vec3) vec3 {
         return vec3.new(u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2]);
     }

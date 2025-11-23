@@ -4,9 +4,16 @@ const std = @import("std");
 const fileWriter = std.fs.File.Writer;
 const ioWriter = std.io.Writer;
 
-pub const vec = @import("vec.zig");
+pub const vec = @import("vec");
+pub const ray = @import("ray");
 
-pub fn generateImageCheck() !void {
+pub const image = struct {
+    width: u64 = 400,
+    aspect_ratio: f64 = 16.0 / 9.0,
+    height: u64 = @intFromFloat(.width / .aspect_ratio),
+};
+
+test "generate image" {
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer: fileWriter = std.fs.File.stdout().writer(&stdout_buffer);
     const stdout: *ioWriter = &stdout_writer.interface;
@@ -29,5 +36,6 @@ pub fn generateImageCheck() !void {
         }
     }
     std.log.debug("Done.", .{});
-    try stdout.flush(); // Don't forget to flush!
+
+    try stdout.flush(); // Don't forget to flush the buffer!
 }
