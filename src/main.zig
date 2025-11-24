@@ -5,11 +5,28 @@ const vec3 = raytracing_one_week.vec.vec3;
 const point3 = raytracing_one_week.vec.point3;
 const Ray = raytracing_one_week.ray.Ray;
 
+fn hit_sphere(center: *const point3, radius: f64, r: *const Ray) bool {
+    const oc = center.subtract(r.get_origin());
+    const a = vec3.dot(r.get_direction(), r.get_origin());
+    const b = -2.0 * vec3.dot(r.get_direction(), &oc);
+    // const oc2 = oc.clone();
+    const c = vec3.dot(&oc, &oc) - (radius * radius);
+    const discriminant = (b * b) - (4 * a * c);
+    return discriminant >= 0;
+}
+
 fn ray_color(ray: *const Ray) vec.color {
+    const center = point3.new(0, 0, -1);
+    if (hit_sphere(&center, 0.5, ray)) {
+        return vec.color{ .base = vec3.new(1, 0, 0) };
+    }
+
     const unit_direction: vec3 = vec3.unit(ray.get_direction());
-    const a = (unit_direction.y() + 1.0) * 2;
+    const a = (unit_direction.y() + 1.0) * 0.5;
     return vec.color{
-        .base = vec3.new(1.0, 1.0, 1.0).scaleUp(1.0 - a).add(vec3.new(0.5, 0.7, 1.0).scaleUp(a)),
+        .base = vec3.new(1.0, 1.0, 1.0).scaleUp(1.0 - a).add(
+            vec3.new(0.5, 0.7, 1.0).scaleUp(a),
+        ),
     };
     // return vec.color{ .base = vec3.new(0, 0, 0) };
 }
@@ -52,7 +69,7 @@ pub fn main() !void {
     const pixel_delta_u = viewport_u.scaleDown(@floatFromInt(img.width));
     const pixel_delta_v = viewport_v.scaleDown(@floatFromInt(img.height));
 
-    const viewport_upper_left = camera_center.subtract(vec3.new(0, 0, focal_length).subtract(viewport_u.scaleDown(2)).subtract(viewport_v.scaleDown(2)));
+    const viewport_upper_left = camera_center.subtract(&vec3.new(0, 0, focal_length).subtract(&viewport_u.scaleDown(2)).subtract(&viewport_v.scaleDown(2)));
     const pixel00_location = viewport_upper_left.add((pixel_delta_u.add(pixel_delta_v)).scaleDown(2));
 
     try stdout.print("P3\n{} {}\n255\n", .{ img.width, img.height });
@@ -61,7 +78,7 @@ pub fn main() !void {
         std.log.debug("Scanlines remaining: {}", .{img.height - i});
         for (0..img.width) |j| {
             const pixel_center = pixel00_location.add(pixel_delta_u.scaleUp(@as(f64, @floatFromInt(j)))).add(pixel_delta_v.scaleUp(@as(f64, @floatFromInt(i))));
-            const ray_direction = pixel_center.subtract(camera_center);
+            const ray_direction = pixel_center.subtract(&camera_center);
             const r = Ray.new(camera_center, ray_direction);
             const pixel_color = ray_color(&r);
             try pixel_color.writeColor(stdout);

@@ -58,7 +58,7 @@ pub const vec3 = struct {
         );
     }
 
-    pub fn subtract(self: *const vec3, other: vec3) vec3 {
+    pub fn subtract(self: *const vec3, other: *const vec3) vec3 {
         return vec3.new(
             self.e[0] - other.e[0],
             self.e[1] - other.e[1],
@@ -137,9 +137,9 @@ pub const vec3 = struct {
         return vec3.new(v.e[0] / t, v.e[1] / t, v.e[2] / t);
     }
 
-    // fn dot(u: vec3, v: vec3) f64 {
-    //     return u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2];
-    // }
+    pub fn dot(u: *const vec3, v: *const vec3) f64 {
+        return u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2];
+    }
 
     // fn cross(u: vec3, v: vec3) vec3 {
     //     return vec3.new(
