@@ -67,8 +67,9 @@ pub fn main() !void {
     const pixel_delta_u = viewport_u.scaleDown(@floatFromInt(img.width));
     const pixel_delta_v = viewport_v.scaleDown(@floatFromInt(img.height));
 
+    const focal_point = vec3.new(0, 0, focal_length);
     const viewport_upper_left = camera_center
-        .subtract(&vec3.new(0, 0, focal_length))
+        .subtract(&focal_point)
         .subtract(&viewport_u.scaleDown(2))
         .subtract(&viewport_v.scaleDown(2));
 
