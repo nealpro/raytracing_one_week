@@ -4,14 +4,8 @@ const std = @import("std");
 const fileWriter = std.fs.File.Writer;
 const ioWriter = std.io.Writer;
 
-pub const vec = @import("vec");
-pub const ray = @import("ray");
-
-pub const image = struct {
-    width: u64 = 400,
-    aspect_ratio: f64 = 16.0 / 9.0,
-    height: u64 = @intFromFloat(.width / .aspect_ratio),
-};
+pub const vec = @import("vec.zig");
+pub const ray = @import("ray.zig");
 
 test "generate image" {
     var stdout_buffer: [1024]u8 = undefined;

@@ -44,74 +44,114 @@ pub const vec3 = struct {
         return &self.e[i];
     }
 
-    pub fn append(self: *vec3, other: vec3) void {
-        self.e[0] += other.e[0];
-        self.e[1] += other.e[1];
-        self.e[2] += other.e[2];
+    // pub fn append(self: *vec3, other: vec3) void {
+    //     self.e[0] += other.e[0];
+    //     self.e[1] += other.e[1];
+    //     self.e[2] += other.e[2];
+    // }
+
+    pub fn add(self: *const vec3, other: vec3) vec3 {
+        return vec3.new(
+            self.e[0] + other.e[0],
+            self.e[1] + other.e[1],
+            self.e[2] + other.e[2],
+        );
     }
 
-    pub fn scaleUp(self: *vec3, t: f64) void {
-        self.e[0] *= t;
-        self.e[1] *= t;
-        self.e[2] *= t;
+    pub fn subtract(self: *const vec3, other: vec3) vec3 {
+        return vec3.new(
+            self.e[0] - other.e[0],
+            self.e[1] - other.e[1],
+            self.e[2] - other.e[2],
+        );
     }
 
-    pub fn scaleDown(self: *vec3, t: f64) void {
-        self.e[0] /= t;
-        self.e[1] /= t;
-        self.e[2] /= t;
+    pub fn scalarAdd(self: *const vec3, t: f64) vec3 {
+        return vec3.new(
+            self.e[0] + t,
+            self.e[1] + t,
+            self.e[2] + t,
+        );
+    }
+
+    pub fn scalarSub(self: *const vec3, t: f64) vec3 {
+        return vec3.new(
+            self.e[0] - t,
+            self.e[1] - t,
+            self.e[2] - t,
+        );
+    }
+
+    pub fn scaleUp(self: *const vec3, t: f64) vec3 {
+        return vec3.new(
+            self.e[0] * t,
+            self.e[1] * t,
+            self.e[2] * t,
+        );
+    }
+
+    pub fn scaleDown(self: *const vec3, t: f64) vec3 {
+        return vec3.new(
+            self.e[0] / t,
+            self.e[1] / t,
+            self.e[2] / t,
+        );
+    }
+
+    pub fn clone(self: vec3) vec3 {
+        return vec3.new(self.e[0], self.e[1], self.e[2]);
     }
 
     pub fn length(self: vec3) f64 {
         return @sqrt(self.lengthSquared());
     }
-    pub fn lengthSquared(self: vec3) f64 {
-        return self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2];
-    }
+    // pub fn lengthSquared(self: vec3) f64 {
+    //     return self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2];
+    // }
 
-    pub fn normalize(self: *vec3) void {
-        self.scaleDown(self.length());
-    }
+    // pub fn normalize(self: *vec3) void {
+    //     self.scaleDown(self.length());
+    // }
 
-    fn add(u: vec3, v: vec3) vec3 {
-        return vec3.new(u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2]);
-    }
+    // fn add(u: vec3, v: vec3) vec3 {
+    //     return vec3.new(u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2]);
+    // }
 
-    fn sub(u: vec3, v: vec3) vec3 {
-        return vec3.new(u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2]);
-    }
+    // fn sub(u: vec3, v: vec3) vec3 {
+    //     return vec3.new(u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2]);
+    // }
 
-    fn mul(u: vec3, v: vec3) vec3 {
-        return vec3.new(u.e[0] * v.e[0], u.e[1] * v.e[1], u.e[2] * v.e[2]);
-    }
+    // fn mul(u: vec3, v: vec3) vec3 {
+    //     return vec3.new(u.e[0] * v.e[0], u.e[1] * v.e[1], u.e[2] * v.e[2]);
+    // }
 
-    fn div(u: vec3, v: vec3) vec3 {
-        return vec3.new(u.e[0] / v.e[0], u.e[1] / v.e[1], u.e[2] / v.e[2]);
-    }
+    // fn div(u: vec3, v: vec3) vec3 {
+    //     return vec3.new(u.e[0] / v.e[0], u.e[1] / v.e[1], u.e[2] / v.e[2]);
+    // }
 
     fn scalarMul(t: f64, v: vec3) vec3 {
         return vec3.new(t * v.e[0], t * v.e[1], t * v.e[2]);
     }
 
-    fn scalarDiv(v: vec3, t: f64) vec3 {
-        return vec3.new(v.e[0] / t, v.e[1] / t, v.e[2] / t);
-    }
+    // fn scalarDiv(v: vec3, t: f64) vec3 {
+    //     return vec3.new(v.e[0] / t, v.e[1] / t, v.e[2] / t);
+    // }
 
-    fn dot(u: vec3, v: vec3) f64 {
-        return u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2];
-    }
+    // fn dot(u: vec3, v: vec3) f64 {
+    //     return u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2];
+    // }
 
-    fn cross(u: vec3, v: vec3) vec3 {
-        return vec3.new(
-            u.e[1] * v.e[2] - u.e[2] * v.e[1],
-            u.e[2] * v.e[0] - u.e[0] * v.e[2],
-            u.e[0] * v.e[1] - u.e[1] * v.e[0],
-        );
-    }
+    // fn cross(u: vec3, v: vec3) vec3 {
+    //     return vec3.new(
+    //         u.e[1] * v.e[2] - u.e[2] * v.e[1],
+    //         u.e[2] * v.e[0] - u.e[0] * v.e[2],
+    //         u.e[0] * v.e[1] - u.e[1] * v.e[0],
+    //     );
+    // }
 
-    fn unit(v: vec3) vec3 {
-        return vec3.scalarDiv(v, v.length());
-    }
+    // fn unit(v: vec3) vec3 {
+    //     return vec3.scalarDiv(v, v.length());
+    // }
 };
 
 pub const point3 = vec3;
