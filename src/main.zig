@@ -7,9 +7,8 @@ const Ray = raytracing_one_week.ray.Ray;
 
 fn hit_sphere(center: *const point3, radius: f64, r: *const Ray) bool {
     const oc = center.subtract(r.get_origin());
-    const a = vec3.dot(r.get_direction(), r.get_origin());
+    const a = vec3.dot(r.get_direction(), r.get_direction());
     const b = -2.0 * vec3.dot(r.get_direction(), &oc);
-    // const oc2 = oc.clone();
     const c = vec3.dot(&oc, &oc) - (radius * radius);
     const discriminant = (b * b) - (4 * a * c);
     return discriminant >= 0;
@@ -28,7 +27,6 @@ fn ray_color(ray: *const Ray) vec.color {
             vec3.new(0.5, 0.7, 1.0).scaleUp(a),
         ),
     };
-    // return vec.color{ .base = vec3.new(0, 0, 0) };
 }
 
 const image = struct {
@@ -69,7 +67,11 @@ pub fn main() !void {
     const pixel_delta_u = viewport_u.scaleDown(@floatFromInt(img.width));
     const pixel_delta_v = viewport_v.scaleDown(@floatFromInt(img.height));
 
-    const viewport_upper_left = camera_center.subtract(&vec3.new(0, 0, focal_length).subtract(&viewport_u.scaleDown(2)).subtract(&viewport_v.scaleDown(2)));
+    const viewport_upper_left = camera_center
+        .subtract(&vec3.new(0, 0, focal_length))
+        .subtract(&viewport_u.scaleDown(2))
+        .subtract(&viewport_v.scaleDown(2));
+
     const pixel00_location = viewport_upper_left.add((pixel_delta_u.add(pixel_delta_v)).scaleDown(2));
 
     try stdout.print("P3\n{} {}\n255\n", .{ img.width, img.height });
