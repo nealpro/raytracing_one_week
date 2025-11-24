@@ -105,9 +105,9 @@ pub const vec3 = struct {
     pub fn length(self: vec3) f64 {
         return @sqrt(self.lengthSquared());
     }
-    // pub fn lengthSquared(self: vec3) f64 {
-    //     return self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2];
-    // }
+    pub fn lengthSquared(self: vec3) f64 {
+        return self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2];
+    }
 
     // pub fn normalize(self: *vec3) void {
     //     self.scaleDown(self.length());
@@ -129,13 +129,13 @@ pub const vec3 = struct {
     //     return vec3.new(u.e[0] / v.e[0], u.e[1] / v.e[1], u.e[2] / v.e[2]);
     // }
 
-    fn scalarMul(t: f64, v: vec3) vec3 {
-        return vec3.new(t * v.e[0], t * v.e[1], t * v.e[2]);
-    }
-
-    // fn scalarDiv(v: vec3, t: f64) vec3 {
-    //     return vec3.new(v.e[0] / t, v.e[1] / t, v.e[2] / t);
+    // fn scalarMul(t: f64, v: vec3) vec3 {
+    //     return vec3.new(t * v.e[0], t * v.e[1], t * v.e[2]);
     // }
+
+    fn scalarDiv(v: *const vec3, t: f64) vec3 {
+        return vec3.new(v.e[0] / t, v.e[1] / t, v.e[2] / t);
+    }
 
     // fn dot(u: vec3, v: vec3) f64 {
     //     return u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2];
@@ -149,9 +149,9 @@ pub const vec3 = struct {
     //     );
     // }
 
-    // fn unit(v: vec3) vec3 {
-    //     return vec3.scalarDiv(v, v.length());
-    // }
+    pub fn unit(v: *const vec3) vec3 {
+        return vec3.scalarDiv(v, v.length());
+    }
 };
 
 pub const point3 = vec3;

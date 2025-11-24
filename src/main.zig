@@ -6,8 +6,12 @@ const point3 = raytracing_one_week.vec.point3;
 const Ray = raytracing_one_week.ray.Ray;
 
 fn ray_color(ray: *const Ray) vec.color {
-    _ = ray;
-    return vec.color{ .base = vec3.new(0, 0, 0) };
+    const unit_direction: vec3 = vec3.unit(ray.get_direction());
+    const a = (unit_direction.y() + 1.0) * 2;
+    return vec.color{
+        .base = vec3.new(1.0, 1.0, 1.0).scaleUp(1.0 - a).add(vec3.new(0.5, 0.7, 1.0).scaleUp(a)),
+    };
+    // return vec.color{ .base = vec3.new(0, 0, 0) };
 }
 
 const image = struct {
@@ -25,11 +29,16 @@ pub fn main() !void {
     const stdout: *std.io.Writer = &stdout_writer.interface;
 
     const aspect_ratio = 16.0 / 9.0;
-    const width = 400;
+    const width: u64 = 400;
+    var height_candidate: u64 = @intFromFloat(@as(f64, width) / aspect_ratio);
+    if (height_candidate < 1) {
+        height_candidate = 1;
+    }
+
     const img = image{
         .width = width,
         .aspect_ratio = aspect_ratio,
-        .height = @intFromFloat(@as(f64, width) / aspect_ratio),
+        .height = height_candidate,
     };
 
     const viewport_height = 2.0;
@@ -40,8 +49,8 @@ pub fn main() !void {
     const viewport_u = vec3.new(viewport_width, 0, 0);
     const viewport_v = vec3.new(0, -viewport_height, 0);
 
-    const pixel_delta_u = viewport_u.scaleDown(img.width);
-    const pixel_delta_v = viewport_v.scaleDown(img.height);
+    const pixel_delta_u = viewport_u.scaleDown(@floatFromInt(img.width));
+    const pixel_delta_v = viewport_v.scaleDown(@floatFromInt(img.height));
 
     const viewport_upper_left = camera_center.subtract(vec3.new(0, 0, focal_length).subtract(viewport_u.scaleDown(2)).subtract(viewport_v.scaleDown(2)));
     const pixel00_location = viewport_upper_left.add((pixel_delta_u.add(pixel_delta_v)).scaleDown(2));
