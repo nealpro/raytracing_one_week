@@ -74,7 +74,7 @@ pub fn main() !void {
     const stdout: *std.io.Writer = &stdout_writer.interface;
 
     const aspect_ratio = 16.0 / 9.0;
-    const width: u64 = 400;
+    const width: u64 = 1200;
     const height = height_from_width(width, aspect_ratio);
 
     const img = image{
