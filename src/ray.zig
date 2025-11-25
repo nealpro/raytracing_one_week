@@ -14,7 +14,7 @@ pub const Ray = struct {
     }
 
     pub fn at(self: *const Ray, t: f64) vec3 {
-        return vec3.add(&self.orig, vec3.scalarMul(t, self.dir));
+        return vec3.appendNew(&self.orig, &vec3.scalarMulNew(t, &self.dir));
     }
 
     pub fn get_origin(self: *const Ray) *const point3 {

@@ -15,7 +15,7 @@ fn height_from_width(width: u64, aspect_ratio: f64) u64 {
 }
 
 fn hit_sphere(center: *const point3, radius: f64, r: *const Ray) f64 {
-    const oc = center.subtract(r.get_origin());
+    const oc = center.subtractNew(r.get_origin());
     const a = vec3.dot(r.get_direction(), r.get_direction());
     const b = -2.0 * vec3.dot(r.get_direction(), &oc);
     const c = vec3.dot(&oc, &oc) - (radius * radius);
@@ -29,19 +29,21 @@ fn hit_sphere(center: *const point3, radius: f64, r: *const Ray) f64 {
     // return discriminant >= 0;
 }
 
-fn hit_square(origin_candidate: ?*const point3, side_length: f64, r: *const Ray) bool {
-    const origin = origin_candidate orelse point3.new(1, 1, 1);
-    _ = origin;
-    _ = side_length;
-    _ = r;
-}
+// fn hit_square(origin_candidate: ?*const point3, side_length: f64, r: *const Ray) bool {
+//     const origin = origin_candidate orelse point3.new(1, 1, 1);
+//     _ = origin;
+//     _ = side_length;
+//     _ = r;
+// }
 
 fn ray_color(ray: *const Ray) vec.color {
     const center = point3.new(0, 0, -1);
     const t = hit_sphere(&center, 0.5, ray);
     if (t > 0.0) {
-        const n: vec3 = vec3.unit(&vec3.new(0, 0, -1).negative().add(ray.at(t)));
-        return vec.color{ .base = vec3.new(n.x() + 1, n.y() + 1, n.z() + 1).scaleDown(2) };
+        var n_intermediate = vec3.new(0, 0, -1).negative();
+        n_intermediate.append(ray.at(t));
+        const n: vec3 = vec3.unit(&n_intermediate);
+        return vec.color{ .base = vec3.new(n.x() + 1, n.y() + 1, n.z() + 1).scaleDownNew(2) };
     }
     // if (hit_sphere(&center, 0.5, ray)) {
     //     return vec.color{ .base = vec3.new(1, 0, 0) };
@@ -50,8 +52,8 @@ fn ray_color(ray: *const Ray) vec.color {
     const unit_direction: vec3 = vec3.unit(ray.get_direction());
     const a = (unit_direction.y() + 1.0) * 0.5;
     return vec.color{
-        .base = vec3.new(1.0, 1.0, 1.0).scaleUp(1.0 - a).add(
-            vec3.new(0.5, 0.7, 1.0).scaleUp(a),
+        .base = vec3.new(1.0, 1.0, 1.0).scaleUpNew(1.0 - a).appendNew(
+            &vec3.new(0.5, 0.7, 1.0).scaleUpNew(a),
         ),
     };
 }
@@ -64,6 +66,7 @@ const image = struct {
 
 pub fn main() !void {
     errdefer std.log.err("Your program ran into a failure!", .{});
+    defer std.log.debug("Your program ran into a success!", .{});
 
     // Writer for stdout
     var stdout_buffer: [1024]u8 = undefined;
@@ -88,23 +91,25 @@ pub fn main() !void {
     const viewport_u = vec3.new(viewport_width, 0, 0);
     const viewport_v = vec3.new(0, -viewport_height, 0);
 
-    const pixel_delta_u = viewport_u.scaleDown(@floatFromInt(img.width));
-    const pixel_delta_v = viewport_v.scaleDown(@floatFromInt(img.height));
+    const pixel_delta_u = viewport_u.scaleDownNew(@floatFromInt(img.width));
+    const pixel_delta_v = viewport_v.scaleDownNew(@floatFromInt(img.height));
 
     const viewport_upper_left = camera_center
-        .subtract(&vec3.new(0, 0, focal_length))
-        .subtract(&viewport_u.scaleDown(2))
-        .subtract(&viewport_v.scaleDown(2));
+        .subtractNew(&vec3.new(0, 0, focal_length))
+        .subtractNew(&viewport_u.scaleDownNew(2))
+        .subtractNew(&viewport_v.scaleDownNew(2));
 
-    const pixel00_location = viewport_upper_left.add((pixel_delta_u.add(pixel_delta_v)).scaleDown(2));
+    const pixel00_location = viewport_upper_left.appendNew(&(&pixel_delta_u.appendNew(&pixel_delta_v)).scaleDownNew(2));
 
     try stdout.print("P3\n{} {}\n255\n", .{ img.width, img.height });
 
     for (0..img.height) |i| {
-        std.log.debug("Scanlines remaining: {}", .{img.height - i});
+        if (i % 15 == 0) {
+            std.log.debug("Scanlines remaining: {}", .{img.height - i});
+        }
         for (0..img.width) |j| {
-            const pixel_center = pixel00_location.add(pixel_delta_u.scaleUp(@as(f64, @floatFromInt(j)))).add(pixel_delta_v.scaleUp(@as(f64, @floatFromInt(i))));
-            const ray_direction = pixel_center.subtract(&camera_center);
+            const pixel_center = pixel00_location.appendNew(&pixel_delta_u.scaleUpNew(@as(f64, @floatFromInt(j)))).appendNew(&pixel_delta_v.scaleUpNew(@as(f64, @floatFromInt(i))));
+            const ray_direction = pixel_center.subtractNew(&camera_center);
             const r = Ray.new(camera_center, ray_direction);
             const pixel_color = ray_color(&r);
             try pixel_color.writeColor(stdout);
