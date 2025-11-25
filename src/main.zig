@@ -1,4 +1,5 @@
 const std = @import("std");
+const sqrt = std.math.sqrt;
 const raytracing_one_week = @import("raytracing_one_week");
 const vec = raytracing_one_week.vec;
 const vec3 = raytracing_one_week.vec.vec3;
@@ -13,13 +14,19 @@ fn height_from_width(width: u64, aspect_ratio: f64) u64 {
     return height_candidate;
 }
 
-fn hit_sphere(center: *const point3, radius: f64, r: *const Ray) bool {
+fn hit_sphere(center: *const point3, radius: f64, r: *const Ray) f64 {
     const oc = center.subtract(r.get_origin());
     const a = vec3.dot(r.get_direction(), r.get_direction());
     const b = -2.0 * vec3.dot(r.get_direction(), &oc);
     const c = vec3.dot(&oc, &oc) - (radius * radius);
     const discriminant = (b * b) - (4 * a * c);
-    return discriminant >= 0;
+
+    if (discriminant < 0) {
+        return -1.0;
+    }
+
+    return (-b - sqrt(discriminant)) / (2.0 * a);
+    // return discriminant >= 0;
 }
 
 fn hit_square(origin_candidate: ?*const point3, side_length: f64, r: *const Ray) bool {
@@ -31,9 +38,14 @@ fn hit_square(origin_candidate: ?*const point3, side_length: f64, r: *const Ray)
 
 fn ray_color(ray: *const Ray) vec.color {
     const center = point3.new(0, 0, -1);
-    if (hit_sphere(&center, 0.5, ray)) {
-        return vec.color{ .base = vec3.new(1, 0, 0) };
+    const t = hit_sphere(&center, 0.5, ray);
+    if (t > 0.0) {
+        const n: vec3 = vec3.unit(&vec3.new(0, 0, -1).negative().add(ray.at(t)));
+        return vec.color{ .base = vec3.new(n.x() + 1, n.y() + 1, n.z() + 1).scaleDown(2) };
     }
+    // if (hit_sphere(&center, 0.5, ray)) {
+    //     return vec.color{ .base = vec3.new(1, 0, 0) };
+    // }
 
     const unit_direction: vec3 = vec3.unit(ray.get_direction());
     const a = (unit_direction.y() + 1.0) * 0.5;

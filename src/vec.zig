@@ -74,6 +74,12 @@ pub const vec3 = struct {
         );
     }
 
+    // pub fn scalarAddNC(self: vec3, t: f64) void {
+    //     self.e[0] = self.e[0] + t;
+    //     self.e[1] = self.e[1] + t;
+    //     self.e[2] = self.e[2] + t;
+    // }
+
     pub fn scalarSub(self: *const vec3, t: f64) vec3 {
         return vec3.new(
             self.e[0] - t,
@@ -129,9 +135,9 @@ pub const vec3 = struct {
     //     return vec3.new(u.e[0] / v.e[0], u.e[1] / v.e[1], u.e[2] / v.e[2]);
     // }
 
-    // fn scalarMul(t: f64, v: vec3) vec3 {
-    //     return vec3.new(t * v.e[0], t * v.e[1], t * v.e[2]);
-    // }
+    pub fn scalarMul(t: f64, v: vec3) vec3 {
+        return vec3.new(t * v.e[0], t * v.e[1], t * v.e[2]);
+    }
 
     fn scalarDiv(v: *const vec3, t: f64) vec3 {
         return vec3.new(v.e[0] / t, v.e[1] / t, v.e[2] / t);
