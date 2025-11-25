@@ -5,6 +5,14 @@ const vec3 = raytracing_one_week.vec.vec3;
 const point3 = raytracing_one_week.vec.point3;
 const Ray = raytracing_one_week.ray.Ray;
 
+fn height_from_width(width: u64, aspect_ratio: f64) u64 {
+    const height_candidate: u64 = @intFromFloat(@as(f64, @floatFromInt(width)) / aspect_ratio);
+    if (height_candidate < 1) {
+        return 1;
+    }
+    return height_candidate;
+}
+
 fn hit_sphere(center: *const point3, radius: f64, r: *const Ray) bool {
     const oc = center.subtract(r.get_origin());
     const a = vec3.dot(r.get_direction(), r.get_direction());
@@ -12,6 +20,13 @@ fn hit_sphere(center: *const point3, radius: f64, r: *const Ray) bool {
     const c = vec3.dot(&oc, &oc) - (radius * radius);
     const discriminant = (b * b) - (4 * a * c);
     return discriminant >= 0;
+}
+
+fn hit_square(origin_candidate: ?*const point3, side_length: f64, r: *const Ray) bool {
+    const origin = origin_candidate orelse point3.new(1, 1, 1);
+    _ = origin;
+    _ = side_length;
+    _ = r;
 }
 
 fn ray_color(ray: *const Ray) vec.color {
@@ -45,15 +60,12 @@ pub fn main() !void {
 
     const aspect_ratio = 16.0 / 9.0;
     const width: u64 = 400;
-    var height_candidate: u64 = @intFromFloat(@as(f64, width) / aspect_ratio);
-    if (height_candidate < 1) {
-        height_candidate = 1;
-    }
+    const height = height_from_width(width, aspect_ratio);
 
     const img = image{
         .width = width,
         .aspect_ratio = aspect_ratio,
-        .height = height_candidate,
+        .height = height,
     };
 
     const viewport_height = 2.0;
@@ -67,9 +79,8 @@ pub fn main() !void {
     const pixel_delta_u = viewport_u.scaleDown(@floatFromInt(img.width));
     const pixel_delta_v = viewport_v.scaleDown(@floatFromInt(img.height));
 
-    const focal_point = vec3.new(0, 0, focal_length);
     const viewport_upper_left = camera_center
-        .subtract(&focal_point)
+        .subtract(&vec3.new(0, 0, focal_length))
         .subtract(&viewport_u.scaleDown(2))
         .subtract(&viewport_v.scaleDown(2));
 
