@@ -1,10 +1,10 @@
 const std = @import("std");
 const sqrt = std.math.sqrt;
-const raytracing_one_week = @import("raytracing_one_week");
-const vec = raytracing_one_week.vec;
-const vec3 = raytracing_one_week.vec.vec3;
-const point3 = raytracing_one_week.vec.point3;
-const Ray = raytracing_one_week.ray.Ray;
+const rtow = @import("raytracing_one_week");
+const vec = rtow.vec;
+const vec3 = rtow.vec.vec3;
+const point3 = rtow.vec.point3;
+const Ray = rtow.ray.Ray;
 
 fn height_from_width(width: u64, aspect_ratio: f64) u64 {
     const height_candidate: u64 = @intFromFloat(@as(f64, @floatFromInt(width)) / aspect_ratio);
@@ -29,25 +29,86 @@ fn hit_sphere(center: *const point3, radius: f64, r: *const Ray) f64 {
     // return discriminant >= 0;
 }
 
-// fn hit_square(origin_candidate: ?*const point3, side_length: f64, r: *const Ray) bool {
-//     const origin = origin_candidate orelse point3.new(1, 1, 1);
-//     _ = origin;
-//     _ = side_length;
-//     _ = r;
-// }
+fn hit_cube(center: *const point3, radius: f64, r: *const Ray) f64 {
+    const rad_vec = vec3.new(radius, radius, radius);
+    const min = center.subtractNew(&rad_vec);
+    const max = center.appendNew(&rad_vec);
+
+    var t_min: f64 = -std.math.inf(f64);
+    var t_max: f64 = std.math.inf(f64);
+
+    const origin = r.get_origin();
+    const direction = r.get_direction();
+
+    // X axis
+    {
+        const invD = 1.0 / direction.x();
+        var t0 = (min.x() - origin.x()) * invD;
+        var t1 = (max.x() - origin.x()) * invD;
+        if (invD < 0.0) {
+            const temp = t0;
+            t0 = t1;
+            t1 = temp;
+        }
+        if (t0 > t_min) t_min = t0;
+        if (t1 < t_max) t_max = t1;
+        if (t_max <= t_min) return -1.0;
+    }
+
+    // Y axis
+    {
+        const invD = 1.0 / direction.y();
+        var t0 = (min.y() - origin.y()) * invD;
+        var t1 = (max.y() - origin.y()) * invD;
+        if (invD < 0.0) {
+            const temp = t0;
+            t0 = t1;
+            t1 = temp;
+        }
+        if (t0 > t_min) t_min = t0;
+        if (t1 < t_max) t_max = t1;
+        if (t_max <= t_min) return -1.0;
+    }
+
+    // Z axis
+    {
+        const invD = 1.0 / direction.z();
+        var t0 = (min.z() - origin.z()) * invD;
+        var t1 = (max.z() - origin.z()) * invD;
+        if (invD < 0.0) {
+            const temp = t0;
+            t0 = t1;
+            t1 = temp;
+        }
+        if (t0 > t_min) t_min = t0;
+        if (t1 < t_max) t_max = t1;
+        if (t_max <= t_min) return -1.0;
+    }
+
+    if (t_max > 0.0) {
+        return t_min;
+    }
+    return -1.0;
+}
 
 fn ray_color(ray: *const Ray) vec.color {
     const center = point3.new(0, 0, -1);
-    const t = hit_sphere(&center, 0.5, ray);
+    const radius = 0.33;
+    const t = hit_cube(&center, radius, ray);
     if (t > 0.0) {
-        var n_intermediate = vec3.new(0, 0, -1).negative();
-        n_intermediate.append(ray.at(t));
-        const n: vec3 = vec3.unit(&n_intermediate);
-        return vec.color{ .base = vec3.new(n.x() + 1, n.y() + 1, n.z() + 1).scaleDownNew(2) };
+        const P = ray.at(t);
+        const P_local = P.subtractNew(&center);
+
+        const r_val = (P_local.x() + radius) / (2.0 * radius);
+        const g_val = (P_local.y() + radius) / (2.0 * radius);
+        const b_val = (P_local.z() + radius) / (2.0 * radius);
+
+        return vec.color{ .base = vec3.new(
+            std.math.clamp(r_val, 0.0, 1.0),
+            std.math.clamp(g_val, 0.0, 1.0),
+            std.math.clamp(b_val, 0.0, 1.0),
+        ) };
     }
-    // if (hit_sphere(&center, 0.5, ray)) {
-    //     return vec.color{ .base = vec3.new(1, 0, 0) };
-    // }
 
     const unit_direction: vec3 = vec3.unit(ray.get_direction());
     const a = (unit_direction.y() + 1.0) * 0.5;
@@ -108,9 +169,21 @@ pub fn main() !void {
             std.log.debug("Scanlines remaining: {}", .{img.height - i});
         }
         for (0..img.width) |j| {
-            const pixel_center = pixel00_location.appendNew(&pixel_delta_u.scaleUpNew(@as(f64, @floatFromInt(j)))).appendNew(&pixel_delta_v.scaleUpNew(@as(f64, @floatFromInt(i))));
+            const pixel_center = pixel00_location.appendNew(
+                &pixel_delta_u.scaleUpNew(@as(f64, @floatFromInt(j))),
+            ).appendNew(
+                &pixel_delta_v.scaleUpNew(@as(f64, @floatFromInt(i))),
+            );
             const ray_direction = pixel_center.subtractNew(&camera_center);
             const r = Ray.new(camera_center, ray_direction);
+
+            if (i == 0 and j == img.width / 2) {
+                std.log.debug("Debug Pixel (0, width/2)", .{});
+                std.log.debug("Ray dir: {d}, {d}, {d}", .{ ray_direction.x(), ray_direction.y(), ray_direction.z() });
+                const hit = hit_cube(&point3.new(0, 0, -1), 0.01, &r);
+                std.log.debug("Hit: {}", .{hit});
+            }
+
             const pixel_color = ray_color(&r);
             try pixel_color.writeColor(stdout);
         }
