@@ -1,4 +1,4 @@
-//! By convention, root.zig is the root source file when making a library.
+//! This library provides basic vector math and ray tracing functionality.
 const std = @import("std");
 
 const fileWriter = std.fs.File.Writer;
